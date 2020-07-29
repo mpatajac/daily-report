@@ -36,7 +36,7 @@ export class UserService {
       name: "matija",
       password: "1234asdf",
       darkTheme: true,
-      showWarning: false
+      showWarning: true
     }
     
     return user.name === username ? user : null;

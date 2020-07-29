@@ -12,17 +12,20 @@
 	<app-report-element [label]="'scheduled'" (reportElementEmitter)="updateScheduled($event)"></app-report-element>
 	<app-report-element [label]="'problems'" (reportElementEmitter)="updateProblems($event)"></app-report-element>
 
-	<span [hidden]="reportNameInput.invalid || canSubmit(createReportForm)" [className]="'validation-error-text centered'">
+	<span [hidden]="reportNameInput.invalid || canSubmit(createReportForm)"
+		[className]="'validation-error-text centered'">
 		At least one element must be filled
 	</span>
 
 	<div [className]="'create-report-btn-wrapper'">
 		<button [className]="'btn-back'" data-toggle="tooltip" data-placement="bottom" title="Go back"
-			routerLink="/app/dashboard" (click)="createReportForm.reset()">&lt;</button>
+			routerLink="/app/dashboard" (click)="createReportForm.reset(); wantsBack = true">&lt;</button>
 		<button data-toggle="modal" data-target="#warningModal" type="submit" [disabled]="!canSubmit(createReportForm)">
 			Submit report
 		</button>
 	</div>
 
-	<app-warning *ngIf="this.user.showWarning"></app-warning>
 </form>
+
+<app-warning *ngIf="this.user.showWarning" [hidden]="!shouldShowWarning()" [(warningConfirmed)]="warningConfirmed"
+	name="warningConfirmed"></app-warning>

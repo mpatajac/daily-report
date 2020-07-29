@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from "@angular/router";
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { User } from "../../common/models/user";
 import { UserService } from "../../common/services/user.service";
 
@@ -12,9 +11,11 @@ export class WarningComponent implements OnInit {
   user: User;
   showWarning: boolean;
 
+  @Input() warningConfirmed: boolean;
+  @Output() warningConfrimedChange = new EventEmitter<boolean>();
+
   constructor(
     private userService: UserService,
-    private router: Router
   ) { }
 
   ngOnInit() {
@@ -25,15 +26,14 @@ export class WarningComponent implements OnInit {
     this.showWarning = !e.target.checked;
   }
 
-  // TODO: resolve this using guards
   submitChange() {
-    if (this.showWarning !== undefined && this.user.showWarning !== this.showWarning) {
+    // update user preference (if needed)
+    if (this.user.showWarning !== this.showWarning) {
       this.userService.updateWarning(this.showWarning);
     }
 
-    // TODO: collect data from input
-
-    this.router.navigateByUrl("/app/dashboard");
+    this.warningConfirmed = true;
+    this.warningConfrimedChange.emit(this.warningConfirmed);
   }
 
 }

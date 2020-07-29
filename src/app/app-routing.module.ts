@@ -9,6 +9,7 @@ import { PasswordResetComponent } from './route-components/password-reset/passwo
 import { NotFoundComponent } from './route-components/not-found/not-found.component';
 
 import { UserAuthGuard } from './common/guards/user-auth.guard';
+import { CanDeactivateGuard } from './common/guards/can-deactivate.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -37,7 +38,8 @@ const routes: Routes = [
   {
     path: 'app/new',
     component: CreateReportComponent,
-    canActivate: [UserAuthGuard]
+    canActivate: [UserAuthGuard],
+    canDeactivate: [CanDeactivateGuard]
   },
   {
     path: 'app/passreset',
