@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
-import { UserService } from '../services/user.service';
+import { UserService } from '@app/common/services/user.service';
 
 
 @Injectable({
@@ -16,14 +16,15 @@ export class UserAuthGuard implements CanActivate {
    * Check that the user is logged in, 
    * otherwise redirect to login view.
    */
-  canActivate(
+  async canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): true | UrlTree {
-    if (this.userService.getUser()) {
+  ): Promise<true | UrlTree> {
+    if (await this.userService.isLoggedIn()) {
       return true;
     }
 
+    this.userService.clearUserData();
     return this.router.parseUrl("/login");
   }
 

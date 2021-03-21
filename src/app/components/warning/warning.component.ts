@@ -1,6 +1,7 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { User } from "../../common/models/user";
-import { UserService } from "../../common/services/user.service";
+import { User } from '@app/common/models/user';
+import { UserService } from '@app/common/services/user.service';
+
 
 @Component({
   selector: 'app-warning',
@@ -18,8 +19,8 @@ export class WarningComponent implements OnInit {
     private userService: UserService,
   ) { }
 
-  ngOnInit() {
-    this.user = this.userService.getUser();
+  async ngOnInit() {
+    this.user = await this.userService.getUser();
   }
 
   onChange(e) {

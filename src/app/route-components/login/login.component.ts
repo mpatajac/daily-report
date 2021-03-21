@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { User } from 'src/app/common/models/user';
-import { UserService } from 'src/app/common/services/user.service';
-import { ThemeService } from 'src/app/common/services/theme.service';
 import { Router } from '@angular/router';
 import { NgForm, NgModel } from '@angular/forms';
+import { UserService } from '@app/common/services/user.service';
 
 @Component({
   selector: 'app-login',
@@ -13,7 +11,6 @@ import { NgForm, NgModel } from '@angular/forms';
 export class LoginComponent implements OnInit {
   username: string;
   password: string;
-  user: User;
 
   // used for form validation
   usernameFound: boolean;
@@ -22,10 +19,15 @@ export class LoginComponent implements OnInit {
   constructor(
     private userService: UserService,
     private router: Router,
-    private themeService: ThemeService
   ) { }
 
   ngOnInit() {
+    // if the user is already logged in, redirect them to dashboard
+    if (this.userService.isLoggedIn()) {
+      this.router.navigateByUrl("/app/dashboard");
+      return;
+    }
+
     // initially set to "true", so the error message doesn't show up
     this.usernameFound = true;
     this.passwordMatches = true;
@@ -33,19 +35,16 @@ export class LoginComponent implements OnInit {
 
   /**
    * 1. Search for user with given username
-   * 2. If such user exists, compare passwords
-   * 3. If passwords match, log user in
+   * 2. If such user exists, attempt login
+   * 3. If login is successful, go to dashboard
    */
-  login() {
-    this.user = this.userService.getUserFromDB(this.username);
-
-    this.usernameFound = !!this.user;
-    this.passwordMatches = this.usernameFound && this.user.password === this.password;
+  async login() {
+    this.usernameFound = await this.userService.doesUserExist(this.username);
+    if (!this.usernameFound) return;
+    
+    this.passwordMatches = await this.userService.login(this.username, this.password);
 
     if (this.passwordMatches) {
-      // successful login
-      this.userService.setUser(this.user);
-      this.themeService.initialiseTheme(this.user.darkTheme);
       this.router.navigateByUrl("/app/dashboard");
     }
   }

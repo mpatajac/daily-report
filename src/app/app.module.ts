@@ -1,11 +1,13 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import { NgxSpinnerModule } from "ngx-spinner";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
-// import { BaasicApp } from 'baasic-sdk-angular';
+import { AppRoutingModule } from './app-routing.module';
+import { HttpClientModule } from '@angular/common/http';
+import { AppComponent } from './app.component';
 
 import { LoginComponent } from './route-components/login/login.component';
 import { DashboardComponent } from './route-components/dashboard/dashboard.component';
@@ -39,12 +41,12 @@ import { WarningComponent } from './components/warning/warning.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
+    HttpClientModule,
     FormsModule,
-    // BaasicApp.forRoot('daily-report-app', {
-    //   apiRootUrl: "api.baasic.com",
-    //   apiVersion: "1.0.8.233"
-    // })
+    NgxSpinnerModule,
+    BrowserAnimationsModule
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [],
   bootstrap: [AppComponent]
 })

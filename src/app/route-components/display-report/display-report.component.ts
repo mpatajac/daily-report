@@ -1,7 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Report } from '../../common/models/report';
-import { ReportService } from 'src/app/common/services/report.service';
+import { Report } from '@app/common/models/report';
+import { ReportService } from '@app/common/services/report.service';
+import { NgxSpinnerService } from "ngx-spinner";
 
 
 @Component({
@@ -17,20 +18,24 @@ export class DisplayReportComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private reportService: ReportService
+    private reportService: ReportService,
+    private spinner: NgxSpinnerService
   ) { }
 
-  ngOnInit() {
-    this.getReport();
+  async ngOnInit() {
+    await this.getReport();
     this.date = this.report.date.toDateString();
   }
 
 
-  getReport(): void {
-    const id = +this.route.snapshot.paramMap.get('id');
-    // TODO: change to subscription
-    this.report = this.reportService.getReport(id);
+  async getReport() {
+    this.spinner.show()
 
+    const id = this.route.snapshot.paramMap.get('id');
+    this.report = await this.reportService.getReportById(id);
+
+    this.spinner.hide()
+    
     // redirect to 404 if no report with given ID is found
     if (!this.report) {
       this.router.navigateByUrl("/not-found");

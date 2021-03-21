@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { User } from '../../common/models/user';
-import { UserService } from 'src/app/common/services/user.service';
 import { Router } from '@angular/router';
+
+import { User } from '@app/common/models/user';
+import { UserService } from '@app/common/services/user.service';
 
 @Component({
   selector: 'app-not-found',
@@ -16,8 +17,8 @@ export class NotFoundComponent implements OnInit {
     private router: Router
   ) { }
 
-  ngOnInit() {
-    this.user = this.userService.getUser();
+  async ngOnInit() {
+    this.user = await this.userService.getUser();
   }
 
   /**

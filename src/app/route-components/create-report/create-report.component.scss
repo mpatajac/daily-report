@@ -6,17 +6,13 @@
 	width: 80%;
 }
 
-.name-input {
+.title-input {
 	margin-bottom: 3em;
 
 	h2 {
 		font-size: 1.2em;
 		margin-left: 1em;
 		margin-bottom: .1em;
-	}
-
-	span {
-		margin-left: 1em;
 	}
 
 	input {
@@ -35,6 +31,14 @@
 			outline: none;
 		}
 	}
+}
+
+
+span {
+	margin-left: 1em;
+	transition: all 250ms ease-in-out;
+	opacity: 0;
+	font-size: 0;
 }
 
 @include validation-error;

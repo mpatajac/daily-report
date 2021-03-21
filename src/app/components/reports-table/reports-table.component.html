@@ -1,64 +1,113 @@
-<!-- No reports to show -->
-<div [className]="'dashboard-no-reports container jumbotron'" *ngIf="this.reports.length === 0">
-	<h2>There are no reports to display.</h2>
-	<h4>Try adjusting your filters or create a new report by pressing the '+' button in the top-right corner.</h4>
-</div>
+<ngx-spinner bdColor="rgba(0,0,0,0.8)" size="large" color="#ddd" type="ball-scale-multiple" [fullScreen]="true">
+</ngx-spinner>
 
-
-<div [className]="'dashboard-table'" *ngIf="this.reports.length > 0">
+<div [className]="'dashboard-table'">
 	<!-- Search and filter -->
-	<div [className]="'dashboard-saf'">
+	<div [className]="'dashboard-saf'" *ngIf="this.reports?.length > 0 ||isFilterUsed()">
 		<div [className]="'dashboard-saf-top'">
-			<input type="text" placeholder="Search ...">
+			<input type="text" placeholder="Search ..."
+				[(ngModel)]="filterConfiguration.generalSearch"
+				(keyup.enter)="updateDisplayedReports()"
+				(blur)="updateDisplayedReports()">
 
-			<button data-toggle="tooltip" data-placenemt="top" title="Filter"
-				(click)="this.showSearchAndFilterFields = !this.showSearchAndFilterFields">
-				<img src="../../../assets/img/dashboard/filter.svg">
+			<button data-toggle="tooltip" data-placenemt="top" title="Filter" (click)="this.toggleSAFVisibility()">
+				<img src="/assets/img/dashboard/filter.svg">
 			</button>
 		</div>
 
-		<div [className]="'dashboard-saf-bottom'" *ngIf="this.showSearchAndFilterFields">
-			<input type="text" placeholder="filter by report name">
-			<input type="text" placeholder="filter by user">
+		<div [className]="'dashboard-saf-bottom'" [class.show-saf]="this.showSAF">
+			<input type="text" placeholder="filter by report title" 
+				[(ngModel)]="filterConfiguration.searchByTitle"
+				(keyup.enter)="updateDisplayedReports()"
+				(blur)="updateDisplayedReports()">
+			<input type="text" placeholder="filter by user" 
+				[(ngModel)]="filterConfiguration.searchByUser" 
+				(keyup.enter)="updateDisplayedReports()" 
+				(blur)="updateDisplayedReports()">
 			<div [className]="'dashboard-filter-date'">
-				<input type="date" id="start-date">
-				<input type="date" id="end-date">
+				<input type="date" id="start-date"
+					[(ngModel)]="startDate"
+					(change)="updateStartDate()">
+				<input type="date" id="end-date"
+					[(ngModel)]="endDate"
+					(change)="updateEndDate()">
 			</div>
-			<div [className]="'dropdown'">
-				<button [className]="'dropdown-toggle'" data-toggle="dropdown">Problems?</button>
-				<div [className]="'dropdown-menu'">
-					<a [className]="'dropdown-item'" (click)="selectDropdownOption('with')" [class.dropdown-selected]="isSelectedOption('with')">With problems</a>
-					<div [className]="'dropdown-divider'"></div>
-					<a [className]="'dropdown-item'" (click)="selectDropdownOption('without')" [class.dropdown-selected]="isSelectedOption('without')">Without problems</a>
-					<div [className]="'dropdown-divider'"></div>
-					<a [className]="'dropdown-item'" (click)="selectDropdownOption('all')" [class.dropdown-selected]="isSelectedOption('all')">All</a>
+			<div [className]="'dashboard-end-group'">
+				<div [className]="'dropdown'">
+					<button [className]="'dropdown-toggle'" data-toggle="dropdown">Problems?</button>
+					<div [className]="'dropdown-menu'">
+						<a [className]="'dropdown-item'" (click)="selectDropdownOption('with')"
+							[class.dropdown-selected]="isSelectedOption('with')">With problems</a>
+						<div [className]="'dropdown-divider'"></div>
+						<a [className]="'dropdown-item'" (click)="selectDropdownOption('without')"
+							[class.dropdown-selected]="isSelectedOption('without')">Without problems</a>
+						<div [className]="'dropdown-divider'"></div>
+						<a [className]="'dropdown-item'" (click)="selectDropdownOption('all')"
+							[class.dropdown-selected]="isSelectedOption('all')">All</a>
+					</div>
 				</div>
+				<button [className]="'dashboard-filter-reset'" data-toggle="tooltip" data-placenemt="top" title="Reset" (click)="this.resetFilter()">
+					<img src="/assets/img/dashboard/reset.svg">
+				</button>
 			</div>
 		</div>
 	</div>
 
 
 	<!-- Table -->
-	<div [className]="'table-bg'">
+	<div [className]="'table-bg'" *ngIf="this.reports?.length > 0">
 		<table>
 			<thead>
 				<tr>
-					<td>Name</td>
-					<td>User</td>
-					<td>Date</td>
-					<td><img src="../../../assets/img/dashboard/problem-header.svg" rel="tooltip" data-placement="top"
-							title="Does this report contain any problems?"></td>
+					<td [className]="'sort'" id="header-title" (click)="configureSort('title')">
+						Title
+						<div [className]="'arrow-container'">
+							<img src="/assets/img/dashboard/sort-up.svg" [className]="'arrow up'">
+							<img src="/assets/img/dashboard/sort-down.svg" [className]="'arrow down'">
+						</div>
+					</td>
+					<td [className]="'sort'" id="header-user" (click)="configureSort('user')">
+						User
+						<div [className]="'arrow-container'">
+							<img src="/assets/img/dashboard/sort-up.svg" [className]="'arrow up'">
+							<img src="/assets/img/dashboard/sort-down.svg" [className]="'arrow down'">
+						</div>
+					</td>
+					<td [className]="'sort'" id="header-date" (click)="configureSort('date')">
+						Date
+						<div [className]="'arrow-container'">
+							<img src="/assets/img/dashboard/sort-up.svg" [className]="'arrow up'">
+							<img src="/assets/img/dashboard/sort-down.svg" [className]="'arrow down'">
+						</div>
+					</td>
+					<td>
+						<img src="/assets/img/dashboard/problem-header.svg" rel="tooltip" data-placement="top"
+							title="Does this report contain any problems?">
+					</td>
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngFor="let report of reports" routerLink="/app/report/{{report.id}}">
-					<td>{{report.name}}</td>
-					<td>{{report.user.name}}</td>
+				<tr *ngFor="let report of reports" (click)="openReport(report)">
+					<td>{{report.title}}</td>
+					<td>{{report.username}}</td>
 					<td>{{report.date | date}}</td>
-					<td><img src="../../../assets/img/dashboard/problem.svg" *ngIf="report.problems.length > 0"
+					<td><img src="/assets/img/dashboard/problem.svg" *ngIf="report.problems?.length > 0"
 							rel="tooltip" data-placement="right" title="This report contains problems."></td>
 				</tr>
 			</tbody>
 		</table>
 	</div>
+
+	<button id="show-more-reports" *ngIf="existRemainingReports()" (click)="moreReports()" data-toggle="tooltip"
+		data-placement="top" title="Show more reports">
+		<img src="/assets/img/dashboard/arrow.svg">
+	</button>
+</div>
+
+
+<!-- No reports to show -->
+<div [className]="'dashboard-no-reports container jumbotron'" [hidden]="this.reports?.length > 0"
+	[class.plus-saf]="isFilterUsed()">
+	<h2>There are no reports to display.</h2>
+	<h4>Try adjusting your filters or create a new report by pressing the '+' button in the top-right corner.</h4>
 </div>

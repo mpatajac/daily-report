@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { UserService } from './user.service';
+import { Injectable, Injector } from '@angular/core';
+import { UserService } from '@app/common/services/user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -7,7 +7,7 @@ import { UserService } from './user.service';
 export class ThemeService {
   body: HTMLElement = document.body;
 
-  constructor(private userService: UserService) { }
+  constructor(private injector: Injector) { }
 
   /**
    * Change UI theme to dark (if needed)
@@ -31,7 +31,9 @@ export class ThemeService {
   }
 
   toggleUserThemePreference() {
-    this.userService.toggleThemePreference();
+    // injected to handle circular dependency (false positive)
+    const userService = this.injector.get(UserService);
+    userService.toggleThemePreference();
   }
 
   /**

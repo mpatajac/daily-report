@@ -1,107 +1,163 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Report } from '../models/report';
-import { UserService } from "./user.service";
-import { User } from '../models/user';
+
+import { Report } from '@app/common/models/report';
+import { UserService } from '@app/common/services/user.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReportService {
-  user: User = {
-    id: 1,
-    name: "matija",
-    password: "1234",
-    darkTheme: true,
-    showWarning: false
+  private baseUrl = "https://api.baasic.com/v1/daily-report-app/resources/Report";
+  page: number = 1;
+  totalReports: number;
+
+  constructor(
+    private http: HttpClient,
+    private userService: UserService
+  ) { }
+
+  async getReports(configuration?): Promise<Report[]> {
+    const header = this.userService.createHeader();
+    const parameters: string = this.setCriteriaParameters(configuration);
+
+    let response: any = await this.http.get(
+      `${this.baseUrl}/?${parameters}`,
+      { headers: header }
+    ).toPromise();
+
+    // get total number of reports for pagination
+    this.totalReports = response.totalRecords;
+
+    let reports = response.item;
+    reports.forEach(report => this.fixDate(report));
+
+    return reports;
   }
 
-  // TODO: get reports from DB
-  reports: Report[] = [
-    {
-      id: 1,
-      user: this.user,
-      name: "Test report",
-      done: [
-        "Something that is done",
-        "Another thing that is done",
-        "Oh wow, we've been productive today"
-      ],
-      inProgress: ["Not so much"],
-      scheduled: [
-        "There are some things that are scheduled",
-        "Actually here is a veeeeeeery looooooong thing that we have scheduled for some time in the near (or not so near) future"
-      ],
-      problems: [
-        "Problem",
-        "Another one",
-        "Another one",
-        "Another one",
-        "Another one",
-        "Another one",
-        "Another one",
-        "Another one",
-      ],
-      date: new Date()
-    },
-    {
-      id: 2,
-      user: this.user,
-      name: "Test report",
-      done: [],
-      inProgress: [],
-      scheduled: ["Some thing that is scheduled."],
-      problems: [],
-      date: new Date()
-    },
-    {
-      id: 3,
-      user: this.user,
-      name: "Test report",
-      done: [],
-      inProgress: [],
-      scheduled: [],
-      problems: [],
-      date: new Date()
-    }
-  ];
+  async getReportById(id: string): Promise<Report> {
+    const header = this.userService.createHeader();
 
-  id: number = 4;
+    let report: any = await this.http.get(
+      `${this.baseUrl}/${id}`,
+      { headers: header }
+    ).toPromise();
 
-  constructor(private userService: UserService) { }
-
-  /**
-   * Temporary method to generate ID
-   * WILL BE REMOVED
-   */
-  getNextID(): number {
-    return this.id++;
-  }
-
-  getReports(): Report[] {
-    return this.reports;
-  }
-
-  getReport(id: number): Report {
-    return this.reports.find(report => report.id === id);
+    this.fixDate(report);
+    return report;
   }
 
   addReport(report: Report): void {
-    report = this.fixReport(report);
+    // copy report and change date format
+    let requestBody: any = report;
+    requestBody.date = report.date.toJSON();
 
-    // TODO: insert report into DB
-    this.reports.push(report);
+    const header = this.userService.createHeader();
+
+    this.http.post(
+      `${this.baseUrl}`,
+      requestBody,
+      { headers: header }
+    ).subscribe();
   }
 
   /**
-   * Replaces empty (undefined) fields inside report with empty array
-   * // TODO: check if this is necessary
-   * @param report Report that (potentially) needs fixing
+   * Turn ISO 8601 formated date to Date object
    */
-  fixReport(report: Report) {
-    if (report.done === undefined) report.done = [];
-    if (report.inProgress === undefined) report.inProgress = [];
-    if (report.scheduled === undefined) report.scheduled = [];
-    if (report.problems === undefined) report.problems = [];
-    return report;
+  fixDate(report) {
+    report.date = new Date(JSON.parse(`"${report.date}"`));
+  }
+
+  nextPage() {
+    ++this.page;
+  }
+
+  resetPage() {
+    this.page = 1;
+  }
+
+  setCriteriaParameters(configuration): string {
+    let searchParameters: string = "";
+
+    // sorting
+    searchParameters += `sort=${configuration.sort.column}|${configuration.sort.order}`;
+
+    // pageing
+    const rpp = 10;
+    searchParameters += `&page=${this.page}&rpp=${rpp}`;
+
+    // search/filter
+    const search = this.configureSearch(configuration);
+    searchParameters += search;
+
+    return searchParameters;
+  }
+
+  configureSearch(configuration): string {
+    let query: string = "";
+
+    // date
+    if (configuration.startDate) {
+      query += `date >= '${configuration.startDate}' AND `;
+    }
+
+    if (configuration.endDate) {
+      query += `date <= '${configuration.endDate}' AND `;
+    }
+
+    // problems
+    if (configuration.problems !== "all") {
+      let operand = configuration.problems === "without" ? '=' : '<>';
+      query += `problems ${operand} '[]' AND `;
+    }
+
+
+    // search/filter
+    let somethingAdded = false;
+
+		// both searchByTitle and searchByUser were used
+    if (configuration.searchByTitle?.length && configuration.searchByUser?.length) {
+      query += `title LIKE '%${configuration.searchByTitle}%' AND username LIKE '%${configuration.searchByUser}%'`;
+      somethingAdded = true;
+
+		// only one of searchByTitle and searchByUser was used
+    } else if (configuration.searchByTitle?.length || configuration.searchByUser?.length || query !== "") {
+      let firstPart = "", secondPart = "";
+      if (configuration.searchByTitle || configuration.generalSearch) {
+        let byTitle = configuration.searchByTitle ?? configuration.generalSearch;
+        firstPart = `title LIKE '%${byTitle}%'`;
+        somethingAdded = true;
+      }
+
+      if (configuration.searchByUser || configuration.generalSearch) {
+        let byUser = configuration.searchByUser ?? configuration.generalSearch;
+        secondPart = `username LIKE '%${byUser}%'`;
+        somethingAdded = true;
+      }
+
+      let bothIn = firstPart && secondPart;
+      query += bothIn ? `${firstPart} OR ${secondPart}` : `${firstPart}${secondPart}`;
+
+    } else {
+      if (configuration.generalSearch) {
+				query += `title LIKE '%${configuration.generalSearch}%' OR username LIKE '%${configuration.generalSearch}%'`;
+        somethingAdded = true;
+      }
+    }
+
+    if (somethingAdded) {
+      query += ` AND `;
+    }
+
+
+    // final
+    if (query !== "") {
+      // since it can't be known which of the subqueries will be
+      // the last one, every one ends with an ' AND'
+      // so we can chain them and then just remove the last ' AND'
+      query = `&searchQuery=WHERE ${query.substring(0, query.length - 4)}`
+    }
+
+    return query;
   }
 }
