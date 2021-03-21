@@ -26,5 +26,8 @@
 
 </form>
 
-<app-warning *ngIf="this.user.showWarning" [hidden]="!shouldShowWarning()" [(warningConfirmed)]="warningConfirmed"
-	name="warningConfirmed"></app-warning>
+<app-warning *ngIf="this.user?.showWarning" 
+	[hidden]="!shouldShowWarning()" 
+	[(warningAccepted)]="warningAccepted"
+	name="warningAccepted">
+</app-warning>

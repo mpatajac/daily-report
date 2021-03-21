@@ -12,8 +12,8 @@ export class WarningComponent implements OnInit {
   user: User;
   showWarning: boolean;
 
-  @Input() warningConfirmed: boolean;
-  @Output() warningConfrimedChange = new EventEmitter<boolean>();
+  @Input() warningAccepted: boolean;
+  @Output() warningAcceptedChange = new EventEmitter<boolean>();
 
   constructor(
     private userService: UserService,
@@ -33,8 +33,8 @@ export class WarningComponent implements OnInit {
       this.userService.updateWarning(this.showWarning);
     }
 
-    this.warningConfirmed = true;
-    this.warningConfrimedChange.emit(this.warningConfirmed);
+    this.warningAccepted = true;
+    this.warningAcceptedChange.emit(this.warningAccepted);
   }
 
 }

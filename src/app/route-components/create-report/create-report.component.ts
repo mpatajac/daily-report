@@ -28,7 +28,7 @@ export class CreateReportComponent implements OnInit {
 	wantsBack: boolean;
 
 	// used to check if user decided to proceed with empty fields
-	warningConfirmed: boolean;
+	warningAccepted: boolean;
 
 
 	constructor(
@@ -45,7 +45,7 @@ export class CreateReportComponent implements OnInit {
 		this.problems = [];
 
 		this.wantsBack = false;
-		this.warningConfirmed = !this.user.showWarning;
+		this.warningAccepted = !this.user.showWarning;
 	}
 
 	updateDone(reportContent: Array<string>) {
@@ -66,7 +66,7 @@ export class CreateReportComponent implements OnInit {
 
 	submitReport() {
 		// Cancel report creation if warning needs to be shown
-		if (this.shouldShowWarning() && !this.warningConfirmed) return;
+		if (this.shouldShowWarning() && !this.warningAccepted) return;
 		
 		let report = new Report(
 			this.user.name,
@@ -121,8 +121,8 @@ export class CreateReportComponent implements OnInit {
   }
 
   proceed(): Observable<boolean> {
-    if (this.warningConfirmed) this.submitReport();
-    return of(this.warningConfirmed);
+    if (this.warningAccepted) this.submitReport();
+    return of(this.warningAccepted);
   }
 
 }
